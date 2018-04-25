@@ -21,7 +21,58 @@ object Interpreter {
 
   /* evaluation function for taking one step at a time */
   def step(x: AST, store: Map[String, AST]): Option[(AST, Map[String, AST])] = {
-    None
+    x match {
+        case Variable(id) =>
+            store.get(id) match {
+                case None => None
+                case Some (r) => 
+                    Some(r, store)
+            }
+        case BoolLit(b) =>
+            None 
+        case IntLit(i) =>
+            None
+        case CondExp(c, e1, e2) =>
+            val r: AST = eval(c, store)
+            r match {
+                case BoolLit(b) =>
+                    b match {
+                        case true => 
+                            Some(e1, store)
+                        case false =>
+                            Some(e2, store)
+                        }
+                case _ => None
+            }
+        case IsZeroExp(e) =>
+            val r: AST = eval(e, store)
+            r match {
+                case IntLit(i) =>
+                    i match {
+                        case 0 => 
+                            Some(BoolLit(true), store)
+                        case 1 =>
+                            Some(BoolLit(false), store)
+                        }
+                case _ => None
+            }   
+        case PlusExp(e1, e2) =>
+            val r1: AST = eval(e1, store)
+            val r2: AST = eval(e2, store)
+            
+            (r1, r2) match {
+                case (IntLit(i1), IntLit(i2)) =>
+                    Some(IntLit(i1 + i2), store)
+                case (_, _) => None
+            }
+        case AssignExp(id, e) =>
+            val store1: Map[String, AST] = store + (id -> e)
+            Some(e, store1)
+        case SeqExp(e1, e2) =>
+            val (x: AST, store1: Map[String, AST]) = step(e1, store).get
+            Some(e2, store1)
+        case _ => None
+    }
   }
 
   /* evaluation function to iterate the steps of evaluation */
