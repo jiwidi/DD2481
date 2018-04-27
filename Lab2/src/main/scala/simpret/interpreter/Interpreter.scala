@@ -34,10 +34,10 @@ object Interpreter {
     x match {
       case Variable(id) =>
         store.get(id) match {
+          case Some(variable) => 
+            Some(variable, store)
           case None => 
             None
-          case Some(y) => 
-            Some(y, store)
         }
       case BoolLit(b) =>
         None
@@ -50,12 +50,11 @@ object Interpreter {
           case BoolLit(false) =>
             Some(e2, store)
           case _ =>
-            val next = step(c, store)
-            next match {
-              case None =>
-                None
+            step(c, store) match {
               case Some((a: AST, s: Map[String, AST])) =>
                 Some(CondExp(a, e1, e2), s)
+              case None =>
+                None
             }
         }
       case IsZeroExp(e) =>
@@ -65,12 +64,11 @@ object Interpreter {
           case IntLit(i) =>
             Some(BoolLit(false), store)
           case _ =>
-            val next = step(e, store)
-            next match {
-              case None =>
-                None
+            step(e, store) match {
               case Some((a: AST, s: Map[String, AST])) =>
                 Some(IsZeroExp(a), s)
+              case None =>
+                None
             }
         }
       case PlusExp(e1, e2) =>
@@ -78,20 +76,18 @@ object Interpreter {
           case (IntLit(i1), IntLit(i2)) =>
             Some(IntLit(i1 + i2), store)
           case (IntLit(i1), e2) =>
-            val next = step(e2, store)
-            next match {
-              case None =>
-                None
+            step(e2, store) match {
               case Some((a: AST, s: Map[String, AST])) =>
                 Some(PlusExp(IntLit(i1), a), s)
-            }
-          case (e1, e2) =>
-            val next = step(e1, store)
-            next match {
               case None =>
                 None
+            }
+          case (e1, e2) =>
+            step(e1, store) match {
               case Some((a: AST, s: Map[String, AST])) =>
                 Some(PlusExp(a, e2), s)
+              case None =>
+                None
             }
         }
       case AssignExp(id, e) =>
@@ -101,21 +97,19 @@ object Interpreter {
           case BoolLit(b) =>
             Some(e, store + (id -> e))
           case _ =>
-            val next = step(e, store)
-            next match {
-              case None =>
-                None
+            step(e, store) match {
               case Some((a: AST, s: Map[String, AST])) =>
                 Some(AssignExp(id, a), s)
+              case None =>
+                None
             }
         }
       case SeqExp(e1, e2) =>
-        val next = step(e1, store)
-        next match {
-          case None =>
-            Some(e2, store)
+        step(e1, store) match {
           case Some((a: AST, s: Map[String, AST])) =>
             Some(SeqExp(a, e2), s)
+          case None =>
+            Some(e2, store)
         }
     }
   }
