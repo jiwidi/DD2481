@@ -2,7 +2,7 @@ name := "simpret"
 
 version := "0.1"
 
-scalaVersion := "2.12.5"
+scalaVersion := "2.12.4"
 
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0"
@@ -12,4 +12,11 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 // https://www.scala-sbt.org/1.x/docs/Triggered-Execution.html
 // https://www.scala-sbt.org/1.0/docs/Howto-Triggered.html
 watchSources += baseDirectory.value / "src" / "input.sint"
+//watchSources += baseDirectory.value / "src" / "test" / "sint" / "lab2"
+
+
+
+// https://docs.scala-lang.org/getting-started-sbt-track/testing-scala-with-sbt-on-the-command-line.html
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test
+
 

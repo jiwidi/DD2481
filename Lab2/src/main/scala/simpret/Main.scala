@@ -14,7 +14,7 @@ import simpret.interpreter._
 //http://uclmr.github.io/stat-nlp-book-scala/05_tutorial/01_intro_to_scala_part1.html
 
 
-// ~run src/input.sipr
+// ~run src/input.sint
 object Main {
   def main(args: Array[String]) = {
     if (args.length < 1) {
@@ -36,7 +36,7 @@ object Main {
               println("Result: " + ASTPrinter.convToStr(x))
               println("==================")
             }
-            case _ => { // this case should never happen
+            case _ => { // the evaluating the expression reached a normal form that is not a value
               println("Evaluation stuck!")
               println("Stuck at")
               println("==================")

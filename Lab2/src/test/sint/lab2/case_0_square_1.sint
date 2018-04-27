@@ -1,0 +1,20 @@
+
+// n^2 == (SUM k=1 to n) (2k - 1)
+
+// input, has to be n>0
+n := 12;
+
+// fix point operator
+fix := \f. (\x. f (\y. x x y)) (\x. f (\y. x x y));
+
+// g function for square
+g := \sq. \n. if iszero (n + -1) then
+                    1
+                  else
+                    n + n + -1 + sq (n + -1);
+
+// square function
+square := fix g;
+
+// function call
+square n
