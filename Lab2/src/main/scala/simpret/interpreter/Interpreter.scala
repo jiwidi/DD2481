@@ -24,10 +24,62 @@ object Interpreter {
   }
 
   /* function for determining the free variables of an expression */
-  def freevars (x: AST) : List[String] = throw new Exception("implement me")
+  def freevars (x: AST) : List[String] = 
+    x match {
+      case Variable(id) => 
+        List(id)
+      case BoolLit(b) => 
+        List()
+      case IntLit(i) => 
+        List()
+      case CondExp(c, e1, e2) =>
+        (freevars(c) ++ freevars(e1) ++ freevars(e2)).distinct
+      case IsZeroExp(e) =>
+        freevars(e)
+      case PlusExp(e1, e2) =>
+        (freevars(e1) ++ freevars(e2)).distinct
+      case AssignExp(id, e) =>
+        (List(id) ++ freevars(e)).distinct
+      case SeqExp(e1, e2) =>
+        (freevars(e1) ++ freevars(e2)).distinct
+      case LamExp(id, e) =>
+        freevars(e).filter(_ > id)
+      case AppExp(e1, e2) =>
+        freevars(e1) ++ freevars(e2)
+    }
 
   /* function for carrying out a substitution */
-  def subst (x: String, s: AST, t: AST):AST = throw new Exception("implement me")
+  def subst (x: String, s: AST, t: AST) : AST = 
+    if(freevars(s).contains(x)) {
+      s match {
+        case Variable(id) => 
+          if(id == x) {
+              t
+          } else {
+            s
+          }
+        case BoolLit(b) => 
+          s
+        case IntLit(i) => 
+          s
+        case CondExp(c, e1, e2) =>
+          CondExp(subst(x, c, t), subst(x, e1, t), subst(x, e2, t))
+        case IsZeroExp(e) =>
+          IsZeroExp(subst(x, e, t))
+        case PlusExp(e1, e2) =>
+          PlusExp(subst(x, e1, t), subst(x, e2, t))
+        case AssignExp(id, e) =>
+          AssignExp(id, subst(x, e, t))
+        case SeqExp(e1, e2) =>
+          SeqExp(subst(x, e1, t), subst(x, e2, t))
+        case LamExp(id, e) =>
+          s
+        case AppExp(e1, e2) =>
+          AppExp(subst(x, e1, t), subst(x, e2, t))
+      }
+    } else {
+      s
+    }
 
   /* evaluation function for taking one step at a time */
   def step(x: AST, store: Map[String, AST]): Option[(AST, Map[String, AST])] = {
@@ -95,10 +147,8 @@ object Interpreter {
             }
         }
       case AssignExp(id, e) =>
-        e match {
-          case IntLit(i) =>
-            Some(e, store + (id -> e))
-          case BoolLit(b) =>
+        isvalue(e) match {
+          case true =>
             Some(e, store + (id -> e))
           case _ =>
             val next = step(e, store)
@@ -116,6 +166,32 @@ object Interpreter {
             Some(e2, store)
           case Some((a: AST, s: Map[String, AST])) =>
             Some(SeqExp(a, e2), s)
+        }
+      case LamExp(id, e) =>
+        None //Some(LamExp(id, e), store)
+      case AppExp(e1, e2) =>
+        e1 match {
+          case LamExp(id, e) =>
+            val fv = freevars(e1)
+            val r = subst(id, e, e2)
+            if(fv != freevars(r)) {
+              errVarCap(id, r)
+            }
+            Some(r, store)
+          case e1 =>
+            val n1 = step(e1, store)
+            n1 match {
+              case None =>
+                val n2 = step(e2, store)
+                n2 match {
+                  case None =>
+                    None
+                  case Some((a: AST, s: Map[String, AST])) =>
+                    Some(AppExp(e1, a), s)
+                }
+              case Some((a: AST, s: Map[String, AST])) =>
+                Some(AppExp(a, e2), s)
+            }
         }
     }
   }
