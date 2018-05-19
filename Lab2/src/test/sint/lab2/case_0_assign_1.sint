@@ -1,0 +1,5 @@
+g := \n. if iszero (n + -1) then
+                    1
+                  else
+                    0;
+g 1

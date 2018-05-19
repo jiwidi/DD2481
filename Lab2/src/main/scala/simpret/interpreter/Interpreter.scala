@@ -43,7 +43,7 @@ object Interpreter {
       case SeqExp(e1, e2) =>
         (freevars(e1) ++ freevars(e2)).distinct
       case LamExp(id, e) =>
-        freevars(e).filter(_ > id)
+        freevars(e) diff List(id)
       case AppExp(e1, e2) =>
         freevars(e1) ++ freevars(e2)
     }
@@ -54,7 +54,7 @@ object Interpreter {
       s match {
         case Variable(id) => 
           if(id == x) {
-              t
+            t
           } else {
             s
           }
@@ -73,14 +73,14 @@ object Interpreter {
         case SeqExp(e1, e2) =>
           SeqExp(subst(x, e1, t), subst(x, e2, t))
         case LamExp(id, e) =>
-          s
+          LamExp(id, subst(x, e, t))
         case AppExp(e1, e2) =>
           AppExp(subst(x, e1, t), subst(x, e2, t))
       }
     } else {
       s
     }
-
+    
   /* evaluation function for taking one step at a time */
   def step(x: AST, store: Map[String, AST]): Option[(AST, Map[String, AST])] = {
     x match {
@@ -103,7 +103,7 @@ object Interpreter {
             Some(e2, store)
           case _ =>
             step(c, store) match {
-              case Some((a: AST, s: Map[String, AST])) =>
+              case Some((a, s)) =>
                 Some(CondExp(a, e1, e2), s)
               case None =>
                 None
@@ -117,7 +117,7 @@ object Interpreter {
             Some(BoolLit(false), store)
           case _ =>
             step(e, store) match {
-              case Some((a: AST, s: Map[String, AST])) =>
+              case Some((a, s)) =>
                 Some(IsZeroExp(a), s)
               case None =>
                 None
@@ -129,14 +129,14 @@ object Interpreter {
             Some(IntLit(i1 + i2), store)
           case (IntLit(i1), e2) =>
             step(e2, store) match {
-              case Some((a: AST, s: Map[String, AST])) =>
+              case Some((a, s)) =>
                 Some(PlusExp(IntLit(i1), a), s)
               case None =>
                 None
             }
           case (e1, e2) =>
             step(e1, store) match {
-              case Some((a: AST, s: Map[String, AST])) =>
+              case Some((a, s)) =>
                 Some(PlusExp(a, e2), s)
               case None =>
                 None
@@ -148,7 +148,7 @@ object Interpreter {
             Some(e, store + (id -> e))
           case _ =>
             step(e, store) match {
-              case Some((a: AST, s: Map[String, AST])) =>
+              case Some((a, s)) =>
                 Some(AssignExp(id, a), s)
               case None =>
                 None
@@ -156,34 +156,26 @@ object Interpreter {
         }
       case SeqExp(e1, e2) =>
         step(e1, store) match {
-          case Some((a: AST, s: Map[String, AST])) =>
+          case Some((a, s)) =>
             Some(SeqExp(a, e2), s)
           case None =>
             Some(e2, store)
         }
       case LamExp(id, e) =>
-        None //Some(LamExp(id, e), store)
+        None
       case AppExp(e1, e2) =>
-        e1 match {
-          case LamExp(id, e) =>
-            val fv = freevars(e1)
-            val r = subst(id, e, e2)
-            if(fv != freevars(r)) {
-              errVarCap(id, r)
-            }
-            Some(r, store)
-          case e1 =>
-            val n1 = step(e1, store)
-            n1 match {
+        (e1, step(e2, store)) match {
+          case (LamExp(id, e), None) =>
+            Some(subst(id, e, e2), store)
+          case (LamExp(id, e), Some((a, s))) =>
+            Some(AppExp(LamExp(id, e), a), s)
+          case (e1, Some((a, s))) =>
+            Some(AppExp(e1, a), s)
+          case (e1, None) =>
+            step(e1, store) match {
               case None =>
-                val n2 = step(e2, store)
-                n2 match {
-                  case None =>
-                    None
-                  case Some((a: AST, s: Map[String, AST])) =>
-                    Some(AppExp(e1, a), s)
-                }
-              case Some((a: AST, s: Map[String, AST])) =>
+                None
+              case Some((a, s)) =>
                 Some(AppExp(a, e2), s)
             }
         }
