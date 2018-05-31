@@ -73,7 +73,11 @@ object Interpreter {
         case SeqExp(e1, e2) =>
           SeqExp(subst(x, e1, t), subst(x, e2, t))
         case LamExp(id, e) =>
-          LamExp(id, subst(x, e, t))
+          if(id == x || freevars(t).contains(id)) {
+            errVarCap(id, t);
+          } else {
+            LamExp(id, subst(x, e, t))
+          }
         case AppExp(e1, e2) =>
           AppExp(subst(x, e1, t), subst(x, e2, t))
       }
