@@ -12,7 +12,7 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 // https://www.scala-sbt.org/1.x/docs/Triggered-Execution.html
 // https://www.scala-sbt.org/1.0/docs/Howto-Triggered.html
 watchSources += baseDirectory.value / "src" / "input.sint"
-//watchSources += baseDirectory.value / "src" / "test" / "sint" / "lab2"
+//watchSources += baseDirectory.value / "src" / "test" / "sint" / "lab3"
 
 
 

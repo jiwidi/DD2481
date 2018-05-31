@@ -27,35 +27,63 @@ object Lexer extends RegexParsers {
   def boolf       = "false"        ^^ (_ => TOKBOOL(false) )
 
   def intlit: Parser[TOKINT] = positioned {
-    "(([-]?)[1-9][0-9]*)|0".r      ^^ { str => TOKINT(Integer.parseInt(str)) }
+    "0|([1-9][0-9]*)".r      ^^ { str => TOKINT(Integer.parseInt(str)) }
   }
 
   /* symbols */
   def symbols: Parser[Token] =
-    positioned (condif | condthen | condelse | iszero | plus | assign | semicolon | parl | parr | lam | dot | col | tybool | tyint | tyarr)
+    positioned (condif | condthen | condelse |
+      plus | lt | minus_tyarr |
+      parl | parr |
+      lam | dot | col_cons | let_letrec | in_tyint |
+      fix |
+      eq | comma | curl | curr |
+      sqbl | sqbr | vbar | isnil | head | tail |
+      tybool)
 
   def condif      = "if"           ^^ (_ => TOKIF)
   def condthen    = "then"         ^^ (_ => TOKTHEN)
   def condelse    = "else"         ^^ (_ => TOKELSE)
 
-  def iszero      = "iszero"       ^^ (_ => TOKISZERO)
-
   def plus        = "+"            ^^ (_ => TOKPLUS)
-
-  def assign      = ":="           ^^ (_ => TOKASSIGN)
-
-  def semicolon   = ";"            ^^ (_ => TOKSC)
+  def lt          = "<"            ^^ (_ => TOKLT)
+  def minus_tyarr = "-" ~ opt(">") ^^ {
+    case _ ~ None    => TOKMINUS        // "-"
+    case _ ~ Some(_) => TOKTYARROW      // "->"
+  }
 
   def parl        = "("            ^^ (_ => TOKPARL)
   def parr        = ")"            ^^ (_ => TOKPARR)
 
   def lam         = "\\"           ^^ (_ => TOKLAM)
   def dot         = "."            ^^ (_ => TOKDOT)
-  def col         = ":"            ^^ (_ => TOKCOL)
+  def col_cons    = ":" ~ opt(":") ^^ {
+    case _ ~ None    => TOKCOL          // ":"
+    case _ ~ Some(_) => TOKCONS         // "::"
+  }
+  def let_letrec  = "let" ~ opt("rec") ^^ {
+    case _ ~ None    => TOKLET          // "let"
+    case _ ~ Some(_) => TOKLETREC       // "letrec"
+  }
+  def in_tyint    = "in" ~ opt("t") ^^ {
+    case _ ~ None    => TOKIN           // "in"
+    case _ ~ Some(_) => TOKTYINT        // "int"
+  }
+  def fix         = "fix"          ^^ (_ => TOKFIX)
 
-  def tybool      = "BOOL"         ^^ (_ => TOKTYBOOL)
-  def tyint       = "INT"          ^^ (_ => TOKTYINT)
-  def tyarr       = "->"           ^^ (_ => TOKTYARROW)
+  def eq          = "="            ^^ (_ => TOKEQ)
+  def comma       = ","            ^^ (_ => TOKCOM)
+  def curl        = "{"            ^^ (_ => TOKCURL)
+  def curr        = "}"            ^^ (_ => TOKCURR)
+
+  def sqbl        = "["            ^^ (_ => TOKSQBL)
+  def sqbr        = "]"            ^^ (_ => TOKSQBR)
+  def vbar        = "|"            ^^ (_ => TOKVBAR)
+  def isnil       = "isnil"        ^^ (_ => TOKISNIL)
+  def head        = "hd"           ^^ (_ => TOKHEAD)
+  def tail        = "tl"           ^^ (_ => TOKTAIL)
+
+  def tybool      = "bool"         ^^ (_ => TOKTYBOOL)
 
 
   /* token stream */

@@ -1,1 +1,1 @@
-(\x. (\y. (x:=x; x + ((\x. x := x + y) 5)))) 42
+(\x:int. (\y:int. (let z = x in x + ((\x:int. let x = x + y in x) 5)))) 42

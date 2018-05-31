@@ -5,17 +5,26 @@ import simpret.lexer._
 import simpret.parser._
 import simpret.errors._
 import simpret.interpreter._
+import simpret.typechecker._
 import org.scalatest.FunSuite
 import java.io.File
 
 
 class MainTestInterpreter extends FunSuite {
 
-  def test_eval(filename: String, expected_result: Either[InterpreterError, AST]) = {
+  def test_eval(filename: String, expected_result: Either[InterpreterError, AST]): Unit = {
     assert(runcase(filename) === expected_result)
   }
 
-  def test_var_capture(filename: String, expected_var_id: String, expected_expr: AST) = {
+  def test_eval_text(filename: String, expected_sint: String): Unit = {
+    val expected_result = parse(expected_sint) match {
+      case Left(err) => throw new Exception("parsing of test case failed")
+      case result => result
+    }
+    assert(runcase(filename) === expected_result)
+  }
+
+  def test_var_capture(filename: String, expected_var_id: String, expected_expr: AST): Unit = {
     try {
       runcase(filename)
       assert(false)
@@ -34,39 +43,63 @@ class MainTestInterpreter extends FunSuite {
       }
   }
 
+  def parse(input: String): Either[InterpreterError, AST] = {
+    for {
+      tokens <- Lexer(input).right
+      ast <- Parser(tokens).right
+    } yield ast
+  }
+
   def loadAst(filename: String): Either[InterpreterError, AST] = {
     for {
       input <- FileLoader(filename).right
-      tokens <- Lexer(input).right
-      ast <- Parser(tokens).right
-    } yield (ast)
+      ast <- parse(input).right
+    } yield ast
   }
 
-  def singleAutoTest(in: File) = {
+  def singleAutoTypeTest(in: File): Unit = {
+    var inFilename = in.getAbsolutePath()
+    loadAst(inFilename) match {
+      case Right(ast) => assert(Typechecker(ast).isLeft, ", but it should not be typable")
+      case Left(error) => assert(false, error)
+    }
+  }
+
+  def singleAutoTest(in: File): Unit = {
     var inFilename = in.getAbsolutePath()
     var stepFilename = inFilename + ".step"
-    var ioError = true
-    for {
-      inAst <- loadAst(inFilename).right
-      stepAst <- loadAst(stepFilename).right
-    } yield {
-      assert(Interpreter.step(inAst, Map.empty) == Some((stepAst, Map.empty)))
-      ioError = false
+
+    (loadAst(inFilename), loadAst(stepFilename)) match {
+      case (Right(inAst), Right(stepAst)) => {
+        Typechecker(inAst) match {
+          case Left(error) => assert(false, error)
+          case _ => None
+        }
+
+        Typechecker(stepAst) match {
+          case Left(error) => assert(false, error)
+          case _ => None
+        }
+
+        assert(Interpreter.step(inAst) === Some(stepAst))
+      }
+      case (Left(error), _) => assert(false, error)
+      case (_, Left(error)) => assert(false, error)
     }
-    assert(!ioError)
   }
 
-  def runstep(filename: String, store: Map[String, AST]):
-    Either[InterpreterError, Option[(AST, Map[String, AST])]] = {
+  def runstep(filename: String):
+    Either[InterpreterError, Option[(AST)]] = {
     for {
       ast <- loadAst(filename).right
-    } yield (Interpreter.step(ast, store))
+    } yield Interpreter.step(ast)
   }
 
   def runcase(filename: String): Either[InterpreterError, AST] = {
     for {
       ast <- loadAst(filename).right
-    } yield (Interpreter.eval(ast))
+      _ <- Typechecker(ast).right
+    } yield Interpreter.eval(ast)
   }
 
 }

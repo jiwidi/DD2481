@@ -3,6 +3,7 @@ package simpret
 import simpret.errors._
 import simpret.lexer._
 import simpret.parser._
+import simpret.typechecker._
 import simpret.interpreter._
 
 
@@ -28,6 +29,7 @@ object Main {
         case Left(LexerError(loc, msg)) => println(s"LEXER ERROR at ($loc): " + msg)
         case Left(ParserError(loc, msg)) => println(s"PARSER ERROR at ($loc): " + msg)
         case Left(PrintingError(msg)) => println("PRINTER ERROR: " + msg)
+        case Left(TypecheckingError(loc, msg)) => println(s"TYPECHECKER ERROR at ($loc): " + msg)
         case Left(EvaluationError(loc, msg)) => println(s"EVALUATION ERROR at ($loc): " + msg)
         case Left(_) => println("!! unknown error type !!")
         case Right(x) => {
@@ -55,6 +57,7 @@ object Main {
       tokens <- Lexer(input).right
       ast <- Parser(tokens).right
       _ <- ASTPrinter(ast).right
+      // Commented by Nils to remove typechecking: _ <- Typechecker(ast).right
       res <- Interpreter(ast).right
     } yield res
   }

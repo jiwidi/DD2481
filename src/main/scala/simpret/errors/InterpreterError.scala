@@ -8,6 +8,7 @@ case class InputError(msg: String) extends InterpreterError
 case class LexerError(loc: Location, msg: String) extends InterpreterError
 case class ParserError(loc: Location, msg: String) extends InterpreterError
 case class PrintingError(msg: String) extends InterpreterError
+case class TypecheckingError(loc: Location, msg: String) extends InterpreterError
 case class EvaluationError(loc: Location, msg: String) extends InterpreterError
 
 

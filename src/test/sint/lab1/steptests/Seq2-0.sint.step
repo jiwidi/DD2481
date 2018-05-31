@@ -1,1 +1,2 @@
-true; 1337 + 1
+let x = true in
+1337 + 1

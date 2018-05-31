@@ -1,9 +1,0 @@
-
-// a function having a free variable y
-g := \x. if true then 5 else y;
-
-// a function with a local parameter y
-f := \g. \y. (g 0) + y;
-
-// even though the variable y is never used in this case, it gets caught when evaluating the following application
-f g 1

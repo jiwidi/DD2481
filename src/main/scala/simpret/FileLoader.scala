@@ -16,7 +16,7 @@ object FileLoader {
         val fileContents = Source.fromFile(filename).mkString
         Right(fileContents)
       } else {
-        val input = "x := 1; if iszero x then (y:=3;z:=y) else (z:=2);z"
+        val input = "if 1 < 2 then 3 else 4"
         Right(input)
       }
     } catch {

@@ -2,19 +2,22 @@
 // n^2 == (SUM k=1 to n) (2k - 1)
 
 // input, has to be n>0
-n := 15;
+let n = 15 in
 
-// fix point operator
-fix := \f. (\x. f (\y. x x y)) (\x. f (\y. x x y));
+// helper functions
+let and = \x:bool. \y:bool. if x then y else false in
+let not = \x:bool. if x then false else true in
+let iszero = \x:int. and (x < 1) (not (x < 0)) in
 
 // g function for square
-g := \sq. \n. if iszero (n + -1) then
-                    1
-                  else
-                    n + n + -1 + sq (n + -1);
+let g = \sq:int->int. \n:int. if iszero (n + -1) then
+                                1
+                              else
+                                n + n + -1 + sq (n + -1)
+in
 
 // square function
-square := fix g;
+let square = fix g in
 
 // function call
 square n
