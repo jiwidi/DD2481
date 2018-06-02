@@ -1,0 +1,7 @@
+let f = \x:int. x in
+
+let g = \n:int. n in
+                    
+let h = f g in
+
+h 1

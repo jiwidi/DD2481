@@ -36,14 +36,24 @@ object Interpreter {
         List()
       case IntLit(i) => 
         List()
+        
       case CondExp(c, e1, e2) =>
         (freevars(c) ++ freevars(e1) ++ freevars(e2)).distinct
       case PlusExp(e1, e2) =>
         (freevars(e1) ++ freevars(e2)).distinct
+      case LtExp(e1, e2) =>
+        (freevars(e1) ++ freevars(e2)).distinct
+      case UMinExp(e) =>
+        freevars(e)
+        
       case LamExp(id, ty, e) =>
         freevars(e) diff List(id)
       case AppExp(e1, e2) =>
-        freevars(e1) ++ freevars(e2)
+        (freevars(e1) ++ freevars(e2)).distinct
+      case LetExp(id, e1, e2) =>
+        (freevars(e1) ++ freevars(e2)).distinct diff List(id)
+      case FixAppExp(e) =>
+        freevars(e)
     }
 
   /* function for carrying out a substitution */
@@ -60,10 +70,16 @@ object Interpreter {
           s
         case IntLit(i) => 
           s
+          
         case CondExp(c, e1, e2) =>
           CondExp(subst(x, c, t), subst(x, e1, t), subst(x, e2, t))
         case PlusExp(e1, e2) =>
           PlusExp(subst(x, e1, t), subst(x, e2, t))
+        case LtExp(e1, e2) =>
+          LtExp(subst(x, e1, t), subst(x, e2, t))
+        case UMinExp(e) =>
+          UMinExp(subst(x, e, t))
+          
         case LamExp(id, ty, e) =>
           if(id == x || freevars(t).contains(id)) {
             errVarCap(id, t);
@@ -72,6 +88,14 @@ object Interpreter {
           }
         case AppExp(e1, e2) =>
           AppExp(subst(x, e1, t), subst(x, e2, t))
+        case LetExp(id, e1, e2) =>
+          if(id == x || freevars(t).contains(id)) {
+            errVarCap(id, t);
+          } else {
+            LetExp(id, subst(x, e1, t), subst(x, e2, t))
+          }
+        case FixAppExp(e) =>
+          FixAppExp(subst(x, e, t))
       }
     } else {
       s
@@ -94,62 +118,32 @@ object Interpreter {
           case BoolLit(false) =>
             Some(e2)
           case _ =>
-            step(c) match {
-              case Some(a) =>
-                Some(CondExp(a, e1, e2))
-              case None =>
-                None
-            }
+            step(c).map(CondExp(_, e1, e2))
         }
       case PlusExp(e1, e2) =>
         (e1, e2) match {
           case (IntLit(i1), IntLit(i2)) =>
             Some(IntLit(i1 + i2))
           case (IntLit(i1), e2) =>
-            step(e2) match {
-              case Some(a) =>
-                Some(PlusExp(IntLit(i1), a))
-              case None =>
-                None
-            }
+            step(e2).map(PlusExp(IntLit(i1), _))
           case (e1, e2) =>
-            step(e1) match {
-              case Some(a) =>
-                Some(PlusExp(a, e2))
-              case None =>
-                None
-            }
+            step(e1).map(PlusExp(_, e2))
         }
       case LtExp(e1, e2) =>
         (e1, e2) match {
           case (IntLit(i1), IntLit(i2)) =>
             Some(BoolLit(i1 < i2))
           case (IntLit(i1), e2) =>
-            step(e2) match {
-              case Some(a) =>
-                Some(LtExp(IntLit(i1), a))
-              case None =>
-                None
-            }
+            step(e2).map(LtExp(IntLit(i1), _))
           case (e1, e2) =>
-            step(e1) match {
-              case Some(a) =>
-                Some(LtExp(a, e2))
-              case None =>
-                None
-            }
+            step(e1).map(LtExp(_, e2))
         }
       case UMinExp(e) =>
         e match {
           case IntLit(i) =>
             Some(IntLit(-i))
           case e =>
-            step(e) match {
-              case Some(a) =>
-                Some(UMinExp(a))
-              case None =>
-                None
-            } 
+            step(e).map(UMinExp(_))
         }
         
       case LamExp(id, ty, e) =>
@@ -163,24 +157,21 @@ object Interpreter {
           case (e1, Some(a)) =>
             Some(AppExp(e1, a))
           case (e1, None) =>
-            step(e1) match {
-              case Some(a) =>
-                Some(AppExp(a, e2))
-              case None =>
-                None
-            }
+            step(e1).map(AppExp(_, e2))
         }
       case LetExp(id, e1, e2) =>
-        (id, e1, e2) match {
-          case (id, Variable(i), e2) =>
-            Some(subst(id, e2, Variable(i)))
-          case (id, e1, e2) =>
-            step(e1) match {
-              case Some(a) =>
-                Some(LetExp(id, a, e2))
-              case None =>
-                Some(e2)
-            } 
+        step(e1) match {
+          case Some(a) =>
+            Some(LetExp(id, a, e2))
+          case None =>
+            Some(subst(id, e2, e1))
+        }
+      case FixAppExp(e) =>
+        e match {
+          case LamExp(id, ty, ee) =>
+            Some(subst(id, ee, FixAppExp(e)))
+          case e =>
+            step(e).map(FixAppExp(_))
         }
     }
   }

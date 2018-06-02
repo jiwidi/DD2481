@@ -7,6 +7,8 @@ import simpret.parser._
 class MainTestLab2 extends MainTestInterpreter {
   val files = getListOfFiles("src/test/sint/lab2/steptests", List("sint")).sorted
 
+
+
   files.foreach { file =>
     test("step test " + file.getName()) {
       singleAutoTest(file)
@@ -21,8 +23,16 @@ class MainTestLab2 extends MainTestInterpreter {
   }
 
   test("TestCaseLab2 1 varcapture") {
+  
   }
-
+  
+  // Custom tests added by Nils
+  test("TestCaseLab2 2 assign") {
+    test_eval("src/test/sint/lab2/case_0_assign_0.sint", Right(IntLit(5)))
+    test_eval("src/test/sint/lab2/case_0_assign_1.sint", Right(IntLit(1)))
+    test_eval("src/test/sint/lab2/case_0_assign_2.sint", Right(IntLit(1)))
+  }
+  
   /*
   // this is how you add a test case
   test("TestCaseLab2 2 ABC") {
