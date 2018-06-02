@@ -80,10 +80,13 @@ object Interpreter {
   /* evaluation function for taking one step at a time */
   def step(x: AST): Option[AST] = {
     x match {
+      case Variable(id) =>
+        None
       case BoolLit(b) =>
         None
       case IntLit(i) =>
         None
+        
       case CondExp(c, e1, e2) =>
         c match {
           case BoolLit(true) =>
@@ -117,6 +120,38 @@ object Interpreter {
                 None
             }
         }
+      case LtExp(e1, e2) =>
+        (e1, e2) match {
+          case (IntLit(i1), IntLit(i2)) =>
+            Some(BoolLit(i1 < i2))
+          case (IntLit(i1), e2) =>
+            step(e2) match {
+              case Some(a) =>
+                Some(LtExp(IntLit(i1), a))
+              case None =>
+                None
+            }
+          case (e1, e2) =>
+            step(e1) match {
+              case Some(a) =>
+                Some(LtExp(a, e2))
+              case None =>
+                None
+            }
+        }
+      case UMinExp(e) =>
+        e match {
+          case IntLit(i) =>
+            Some(IntLit(-i))
+          case e =>
+            step(e) match {
+              case Some(a) =>
+                Some(UMinExp(a))
+              case None =>
+                None
+            } 
+        }
+        
       case LamExp(id, ty, e) =>
         None
       case AppExp(e1, e2) =>
@@ -129,11 +164,23 @@ object Interpreter {
             Some(AppExp(e1, a))
           case (e1, None) =>
             step(e1) match {
-              case None =>
-                None
               case Some(a) =>
                 Some(AppExp(a, e2))
+              case None =>
+                None
             }
+        }
+      case LetExp(id, e1, e2) =>
+        (id, e1, e2) match {
+          case (id, Variable(i), e2) =>
+            Some(subst(id, e2, Variable(i)))
+          case (id, e1, e2) =>
+            step(e1) match {
+              case Some(a) =>
+                Some(LetExp(id, a, e2))
+              case None =>
+                Some(e2)
+            } 
         }
     }
   }
