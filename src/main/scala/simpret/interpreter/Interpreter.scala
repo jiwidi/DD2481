@@ -173,6 +173,100 @@ object Interpreter {
           case e =>
             step(e).map(FixAppExp(_))
         }
+        
+      case TupleExp(el) =>
+        val pre = el.takeWhile(isvalue(_)) 
+        if (pre.size < el.size) {
+          step(el(pre.size)) match {
+            case Some(a) =>
+              Some(TupleExp(el.patch(pre.size, List(a), 1)))
+            case None =>
+              None
+          }
+        } else {
+          None
+        }
+      case ProjTupleExp(e, i) =>
+        e match {
+          case TupleExp(el) =>
+            if (isvalue(el(i - 1))) {
+              Some(el(i - 1))
+            } else {
+              step(e)
+            }
+          case e =>
+            step(e).map(ProjTupleExp(_, i))
+        }
+      case RecordExp(em) =>
+        val pre = em.dropWhile { case (k, v) => isvalue(v) }
+        pre.head match {
+          case (k, v) =>
+            step(v) match {
+              case Some(a) =>
+                Some(RecordExp(em + (k -> a)))
+              case None =>
+                None
+            }
+          case _ =>
+            None
+        }
+      case ProjRecordExp(e, l) =>
+        e match {
+          case RecordExp(em) =>
+            if (isvalue(em(l))) {
+              Some(em(l))
+            } else {
+              step(e)
+            }
+          case e =>
+            step(e).map(ProjRecordExp(_, l))
+        }
+        
+      case NilExp(ty) =>
+        None
+      case ConsExp(eh, et) => 
+        step(eh) match {
+          case Some(a) =>
+            Some(ConsExp(a, et))
+          case None =>
+            step(et) match {
+              case Some(b) =>
+                Some(ConsExp(eh, b))
+              case None =>
+                None
+            }
+        }
+      case IsNilExp(e) =>
+        e match {
+          case NilExp(ty) =>
+            Some(BoolLit(true))
+          case ConsExp(eh, et) =>
+            Some(BoolLit(false))
+          case e =>
+            step(e).map(HeadExp(_))
+        }
+      case HeadExp(e) =>
+        e match {
+          case ConsExp(eh, et) =>
+            if (isvalue(e)) {
+              Some(eh)
+            } else {
+              step(e).map(HeadExp(_))
+            }
+          case e =>
+            step(e).map(HeadExp(_))
+        }
+      case TailExp(e) =>
+        e match {
+          case ConsExp(eh, et) =>
+            if (isvalue(e)) {
+              Some(et)
+            } else {
+              step(e).map(TailExp(_))
+            }
+          case e =>
+            step(e).map(TailExp(_))
+        }
     }
   }
 
