@@ -54,6 +54,26 @@ object Interpreter {
         (freevars(e1) ++ freevars(e2)).distinct diff List(id)
       case FixAppExp(e) =>
         freevars(e)
+        
+      case TupleExp(el) =>
+        el.flatMap(freevars).distinct
+      case ProjTupleExp(e, i) =>
+        freevars(e)
+      case RecordExp(em) =>
+        em.values.toList.flatMap(freevars).distinct
+      case ProjRecordExp(e, l) =>
+        freevars(e)
+      
+      case NilExp(ty) =>
+        List()
+      case ConsExp(eh, et) =>
+        (freevars(eh) ++ freevars(et)).distinct
+      case IsNilExp(e) =>
+        freevars(e)
+      case HeadExp(e) =>
+        freevars(e)
+      case TailExp(e) =>
+        freevars(e)
     }
 
   /* function for carrying out a substitution */
@@ -89,13 +109,34 @@ object Interpreter {
         case AppExp(e1, e2) =>
           AppExp(subst(x, e1, t), subst(x, e2, t))
         case LetExp(id, e1, e2) =>
-          if(id == x || freevars(t).contains(id)) {
-            errVarCap(id, t);
-          } else {
+          //if(id == x || freevars(t).contains(id)) {
+          //  errVarCap(id, t);
+          //} else {
             LetExp(id, subst(x, e1, t), subst(x, e2, t))
-          }
+          //}
         case FixAppExp(e) =>
           FixAppExp(subst(x, e, t))
+          
+        case TupleExp(el) =>
+          TupleExp(el.map(subst(x, _, t)))
+        case ProjTupleExp(e, i) =>
+          ProjTupleExp(subst(x, e, t), i)
+        case RecordExp(em) =>
+          em foreach (ee => subst(x, ee._2, t))
+          RecordExp(em)
+        case ProjRecordExp(e, l) =>
+          ProjRecordExp(subst(x, e, t), l)
+          
+        case NilExp(ty) =>
+          s
+        case ConsExp(eh, et) =>
+          ConsExp(subst(x, eh, t), subst(x, et, t))
+        case IsNilExp(e) =>
+          IsNilExp(subst(x, e, t))
+        case HeadExp(e) =>
+          HeadExp(subst(x, e, t))
+        case TailExp(e) =>
+          TailExp(subst(x, e, t))
       }
     } else {
       s

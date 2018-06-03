@@ -1,6 +1,6 @@
 let f = \x:int. x in
 
-let g = \n:int. n in
+let g = \n:int. n + 1 in
                     
 let h = f g in
 

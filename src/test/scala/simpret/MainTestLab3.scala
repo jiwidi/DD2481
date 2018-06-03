@@ -6,18 +6,22 @@ import simpret.parser._
 class MainTestLab3 extends MainTestInterpreter {
   val files = getListOfFiles("src/test/sint/lab3/steptests", List("sint")).sorted
 
+
+
   files.foreach { file =>
     test("step test " + file.getName()) {
       singleAutoTest(file)
     }
   }
 
+/* Commented out by Nils
   val nottypable = getListOfFiles("src/test/sint/lab3/nottypable", List("sint")).sorted
   nottypable.foreach { file =>
     test("typing test " + file.getName()) {
       singleAutoTypeTest(file)
     }
   }
+*/
 
   test("TestCaseLab3 0 recfun") {
     test_eval("src/test/sint/lab3/case_0_recfun_0.sint", Right(IntLit(27)))
@@ -51,7 +55,7 @@ class MainTestLab3 extends MainTestInterpreter {
   test("TestCaseLab3 2 letin") {
     test_eval("src/test/sint/lab3/case_2_letin_0.sint", Right(IntLit(10)))
   }
-
+  
   /*
   // this is how you add a test case
   test("TestCaseLab3 3 ABC") {

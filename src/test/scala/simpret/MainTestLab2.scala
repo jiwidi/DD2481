@@ -30,7 +30,7 @@ class MainTestLab2 extends MainTestInterpreter {
   test("TestCaseLab2 2 assign") {
     test_eval("src/test/sint/lab2/case_0_assign_0.sint", Right(IntLit(5)))
     test_eval("src/test/sint/lab2/case_0_assign_1.sint", Right(IntLit(1)))
-    test_eval("src/test/sint/lab2/case_0_assign_2.sint", Right(IntLit(1)))
+    test_eval("src/test/sint/lab2/case_0_assign_2.sint", Right(IntLit(2)))
   }
   
   /*
