@@ -14,14 +14,12 @@ class MainTestLab3 extends MainTestInterpreter {
     }
   }
 
-/* Commented out by Nils
   val nottypable = getListOfFiles("src/test/sint/lab3/nottypable", List("sint")).sorted
   nottypable.foreach { file =>
     test("typing test " + file.getName()) {
       singleAutoTypeTest(file)
     }
   }
-*/
 
   test("TestCaseLab3 0 recfun") {
     test_eval("src/test/sint/lab3/case_0_recfun_0.sint", Right(IntLit(27)))

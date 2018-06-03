@@ -51,7 +51,7 @@ object Interpreter {
       case AppExp(e1, e2) =>
         (freevars(e1) ++ freevars(e2)).distinct
       case LetExp(id, e1, e2) =>
-        (freevars(e1) ++ freevars(e2)).distinct diff List(id)
+        (freevars(e1) ++ freevars(e2)).distinct
       case FixAppExp(e) =>
         freevars(e)
         
@@ -109,11 +109,11 @@ object Interpreter {
         case AppExp(e1, e2) =>
           AppExp(subst(x, e1, t), subst(x, e2, t))
         case LetExp(id, e1, e2) =>
-          //if(id == x || freevars(t).contains(id)) {
-          //  errVarCap(id, t);
-          //} else {
+          if(id == x || freevars(t).contains(id)) {
+            LetExp(id, subst(x, e1, t), e2)
+          } else {
             LetExp(id, subst(x, e1, t), subst(x, e2, t))
-          //}
+          }
         case FixAppExp(e) =>
           FixAppExp(subst(x, e, t))
           
@@ -240,15 +240,15 @@ object Interpreter {
         }
       case RecordExp(em) =>
         val pre = em.dropWhile { case (k, v) => isvalue(v) }
-        pre.head match {
-          case (k, v) =>
+        pre.headOption match {
+          case Some((k, v)) =>
             step(v) match {
               case Some(a) =>
                 Some(RecordExp(em + (k -> a)))
               case None =>
                 None
             }
-          case _ =>
+          case None =>
             None
         }
       case ProjRecordExp(e, l) =>
