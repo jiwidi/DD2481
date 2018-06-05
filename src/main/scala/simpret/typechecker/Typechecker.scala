@@ -90,7 +90,7 @@ object Typechecker {
                 errArrowNotSame(t1, t2, x)
             }
           case _ => 
-            BoolTy//errExpectedType("ArrowTy", x)
+            errExpectedType("ArrowTy", x)
         }
       case TupleExp(el) =>
         TupleTy(el.map(check(_, env)))
