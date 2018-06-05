@@ -57,7 +57,7 @@ object Main {
       tokens <- Lexer(input).right
       ast <- Parser(tokens).right
       _ <- ASTPrinter(ast).right
-      // Commented by Nils to remove typechecking: _ <- Typechecker(ast).right
+      _ <- Typechecker(ast).right
       res <- Interpreter(ast).right
     } yield res
   }

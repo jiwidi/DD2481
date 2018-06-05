@@ -20,7 +20,11 @@ object Typechecker {
   def check(x: AST, env: Map[String, ASTTY] = Map.empty):ASTTY = {
     x match {
       case Variable(id) =>
-        env(id)
+        if (env.contains(id)) {
+          env(id)
+        } else {
+          errVarUnbound(x)
+        }
       case BoolLit(b) =>
         BoolTy
       case IntLit(i) =>
@@ -72,7 +76,7 @@ object Typechecker {
                 errAppArgument(t1, t3, x)
             }
           case (_, _) =>
-            BoolTy//errUnknownAST(x) 
+            errUnknownAST(x) 
         }
       case LetExp(id, e1, e2) =>
         check(e2, env + (id -> check(e1, env)))
@@ -88,14 +92,70 @@ object Typechecker {
           case _ => 
             BoolTy//errExpectedType("ArrowTy", x)
         }
-        
-      //case TupleExp(el) =>
-        
-      //case ProjTupleExp(e, i) =>
-        
-        
-      case _ =>
-        IntTy
+      case TupleExp(el) =>
+        TupleTy(el.map(check(_, env)))
+      case ProjTupleExp(e, i) =>
+        check(e, env) match {
+          case TupleTy(tyl) =>
+            if (i - 1 < 0) {
+              errProjTooSmall(x)
+            } else if (i - 1 < tyl.size) {
+              tyl(i - 1)
+            } else {
+              errProjTooBig(i, x)
+            } 
+          case _ =>
+            errExpectedType("TupleTy", e)
+        }
+      case RecordExp(em) =>
+        RecordTy(em.map { case (k, v) => k -> check(v, env) })
+      case ProjRecordExp(e, l) =>
+        check(e, env) match {
+          case RecordTy(tym) =>
+            if (tym.contains(l)) {
+              tym(l)
+            } else {
+              errProjNotField(l, x)
+            } 
+          case _ =>
+            errExpectedType("RecordTy", x)
+        }
+      
+      case NilExp(ty) =>
+        ListTy(ty)
+      case ConsExp(eh, et) =>
+        (check(eh, env), check(et, env)) match {
+          case (t1, ListTy(t2)) =>
+            t1 match {
+              case `t2` => 
+                ListTy(t2)
+              case _ =>
+                errCons(t1, t2, x)
+            }
+          case (t1, t2) =>
+            errCons(t1, t2, x)
+        }
+      case IsNilExp(e) =>
+        check(e, env) match {
+          case ListTy(ty) =>
+            BoolTy
+          case _ =>
+            errExpectedType("ListTy", x)
+        }
+      case HeadExp(e) =>
+        check(e, env) match {
+          case ListTy(ty) =>
+            ty
+          case _ =>
+            errExpectedType("ListTy", x)
+        }
+      case TailExp(e) =>
+        check(e, env) match {
+          case ListTy(ty) =>
+            ListTy(ty)
+          case _ =>
+            errExpectedType("ListTy", x)
+        }
     }
   }
 
