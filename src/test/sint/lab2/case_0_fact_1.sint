@@ -1,0 +1,14 @@
+i := 4;
+
+// fix point operator
+fix := \f. (\x. f (\y. x x y)) (\x. f (\y. x x y));
+
+h := \mu. \a. \b. if (iszero a) then 0 else b + mu b (a + -1);
+
+mult := fix h;
+
+g := \fa. \n. if (iszero n) then 1 else mult n (fa (n + -1));
+
+fact := fix g;
+
+fact i

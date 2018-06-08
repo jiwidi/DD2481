@@ -33,4 +33,16 @@ class MainTestLab2 extends MainTestInterpreter {
     test_eval("src/test/sint/lab2/case_0_assign_1.sint", Right(IntLit(1)))
     test_eval("src/test/sint/lab2/case_0_assign_2.sint", Right(IntLit(1)))
   }
+  
+  test("TestCaseLab2 2 mult") {
+    test_eval("src/test/sint/lab2/case_0_mult_0.sint", Right(IntLit(1)))
+    test_eval("src/test/sint/lab2/case_0_mult_1.sint", Right(IntLit(-35)))
+    test_eval("src/test/sint/lab2/case_0_mult_2.sint", Right(IntLit(860)))
+  }
+  
+  test("TestCaseLab2 2 fact") {
+    test_eval("src/test/sint/lab2/case_0_fact_0.sint", Right(IntLit(1)))
+    test_eval("src/test/sint/lab2/case_0_fact_1.sint", Right(IntLit(24)))
+    test_eval("src/test/sint/lab2/case_0_fact_2.sint", Right(IntLit(3628800)))
+  }
 }
