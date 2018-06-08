@@ -1,0 +1,5 @@
+
+let x = 1 in
+letrec apply:[int->int]->int = \f:[int->int]. if isnil f then x else (hd f) (apply (tl f)) in
+let list1 = [\n:int. n + 1,\n:int. n + -4,\n:int. if n < 5 then 0 else 5,\n:int. n + 7|int->int] in
+apply list1

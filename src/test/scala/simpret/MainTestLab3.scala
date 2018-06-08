@@ -54,15 +54,8 @@ class MainTestLab3 extends MainTestInterpreter {
     test_eval("src/test/sint/lab3/case_2_letin_0.sint", Right(IntLit(10)))
   }
   
-  /*
-  // this is how you add a test case
-  test("TestCaseLab3 3 ABC") {
-    // here you add the sub testcases
+  // Added by Nils
+  test("TestCaseLab3 3 list") {
+    test_eval("src/test/sint/lab3/case_0_list_0.sint", Right(IntLit(2)))
   }
-
-  // this is how you add another test case
-  test("TestCaseLab3 4 XYZ") {
-    // here you add the corresponding sub testcases
-  }
-  */
 }

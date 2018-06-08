@@ -75,8 +75,8 @@ object Typechecker {
               case _ =>
                 errAppArgument(t1, t3, x)
             }
-          case (_, _) =>
-            errUnknownAST(x) 
+          case (t1, t2) =>
+            errArrowNotSame(t1, t2, x) 
         }
       case LetExp(id, e1, e2) =>
         check(e2, env + (id -> check(e1, env)))
