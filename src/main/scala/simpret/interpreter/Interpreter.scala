@@ -122,8 +122,7 @@ object Interpreter {
         case ProjTupleExp(e, i) =>
           ProjTupleExp(subst(x, e, t), i)
         case RecordExp(em) =>
-          em foreach (ee => subst(x, ee._2, t))
-          RecordExp(em)
+          RecordExp(em.mapValues(subst(x, _, t)))
         case ProjRecordExp(e, l) =>
           ProjRecordExp(subst(x, e, t), l)
           
